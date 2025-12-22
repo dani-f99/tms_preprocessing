@@ -1,18 +1,18 @@
 --------------------------------------------------------------------------------
                               SYSTEM IMMUNOLOGY LAB
                                 Haifa University
-                                 Daniel Fridman
+                                 Daniel Fridman 
                                       2025
 --------------------------------------------------------------------------------
 
 
-# PROJECT: Amino Acid Motif Logo Maker
+# PROJECT: Code Rehaul of Too Many Cells Preporcessing Pipline
 
 ## 1. OVERVIEW
-This program aim is to visualize the amino acid usage bais across 
-defiened BCR heavy chain variable section. If metadata exists the program
-can output multiple sub-plots defined by the metadata in order to comapre 
-motifs across different conditions.
+This program aim is to automate and orgnize the script that was written as part
+of the studenst bshara and ___. The pipline produce suitible input for the spectral
+clustring algorithm too many cells, which is part of the Immcantation immunulogy 
+packages suite.
 
 
 ## 2. PREREQUISITES
@@ -20,7 +20,7 @@ Please ensure the following python modules are installed:
 - `Pandas`
 - `NumPy` 
 - `Matplotlib` 
-- `logomaker`
+- `
 
 
 ## 3. USAGE GUIDE
@@ -28,28 +28,28 @@ Please ensure the following python modules are installed:
    - Once the custom python modules will be loaded the script will initiate
    the required folders and import the `congif.json` information into `config`
    variable.
-1. Place the sequences dataset in the `input` folder (example file is provided). 
-2. Follow the steps illustrated in the `motif_logo.ipynb` notebook(example output 
-is provided). 
-3. Access the output figures via the `output` folder.
+2. Run the `run_tms_pipeline.py` file via cmd
+
+`Note: Run report will be saved in the reports folder`
 
 
 ## 4. CONFIG.JSON CONFIGURATION
-The `congif.json` is in a json format and serve multiple purposes, configure 
+The `congif.json` is in a json format and it's purpose is to configure the ImmuneDB MySQL connection
+and database on which the process will be performed.
 before program usage:
-- `input_folder`: raw sequences inputs folder (defualt `input`).
-- `output_folder`:raw sequences output folder (defualt `output`).
-- `group_by`: column on which the data will be grouped by.
-- `split_subjects`: Split the sequences per subject.
+- `sql`: Configure the sql connection information.
+- `database`: Configure the database name and subject id.
 
 
 ## 5. DIRECTORY STRUCTURE
 The program uses the following folder structure: 
-- `input/`  : Input folder (for the sequences data). 
-- `output/` : Result - main output folder. 
-  - `output/motif_figure` : output folder of motif figures. 
-  - `output/motif_data` : output folder of motif processed data. 
+- `temp_data`: Store the files constructed along the pipeline.
+    - `temp_data\{database_subject}`: Dedicated folder for each database and subject.
+- `tms_input`: Store the final output, can be used as input for the too many cells algorithm.
+    -`tms_input\{database_subject}`: Dedicated folder for each database and subject.
+- `reports`: The program will save report for each run to this folder with as `date_database_subject.txt`.
 
-		   
+
+	  
 ## 6. RESOUCES
-- Logomaker documentation: https://logomaker.readthedocs.io/en/latest/
+- 
