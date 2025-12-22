@@ -1,0 +1,9 @@
+{"sql":{"adress":"",
+        "port":"",
+        "username":"",
+        "password":""
+       },
+ "database":{"db_name":"",
+             "subject_id":""
+            }         
+}
