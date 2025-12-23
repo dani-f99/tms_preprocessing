@@ -38,7 +38,8 @@ The `congif.json` is in a json format and it's purpose is to configure the Immun
 and database on which the process will be performed.
 before program usage:
 - `sql`: Configure the sql connection information.
-- `database`: Configure the database name and subject id.
+- `database`: Configure the database name and subject id. 
+    - subject_id in the format of "1,2,3,...,n"
 
 
 ## 5. DIRECTORY STRUCTURE
