@@ -1,9 +1,9 @@
-{"sql":{"adress":"",
-        "port":"",
-        "username":"",
-        "password":""
-       },
- "database":{"db_name":"",
-             "subject_id":""
-            }         
+{"sql":{"adress":"132.75.249.34",
+        "port":"3306",
+        "username":"guest",
+        "password":"Klaim859!"
+        },
+ "database":{"db_name":"covid_vaccine_new",
+             "subject_id":"7"
+             }         
 }
