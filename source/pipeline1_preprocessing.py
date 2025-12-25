@@ -37,11 +37,10 @@ class PipelinePreprocessingTest(unittest.TestCase):
 
         # Cheecking if database assosiated talbes exsists
         create_folders()
-        create_folders(req_folders=[f"{i}//{cls.db_name}" for i in ["temp_data", "tms_input", "reports"]])
+        create_folders(req_folders=[f"{i}\\{cls.db_name}" for i in ["temp_data", "tms_input", "reports"]])
 
         # Setting paths
-        cls.path_temp = f"temp_data//{cls.db_name}//"
-        cls.path_final = f"tms_input//{cls.db_name}//"
+        cls.path_temp = f"temp_data\\{cls.db_name}\\"
         cls.trimer_dict_path = "source\\tables\\trimersDict.csv"
 
 
@@ -84,7 +83,7 @@ class PipelinePreprocessingTest(unittest.TestCase):
                 
                 mycursor = mydb.cursor(dictionary=True)
 
-                removed = f"temp_data\\{self.db_name}rem.csv"
+                removed = f"temp_data\\{self.db_name}\\{self.db_name}_rem.csv"
 
                 #Command for getting the sequences translated:
                 command = (cmd)
