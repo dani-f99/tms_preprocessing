@@ -1,4 +1,10 @@
+# Import required packages
+from datetime import datetime
+import mysql.connector
+import unittest
 import json
+import sys
+import os
 
 
 ####################################################################
@@ -38,8 +44,10 @@ def read_json(path:str = "config.json") -> dict:
 
 #####################################################
 # Creating folder according to the and program scheme
-def create_folders():
-    req_folders = ["temp_data", "tms_input", "reports"]
+def create_folders(req_folders : list = ["temp_data", "tms_input", "reports"]):
+    """
+    req_folders : str -> required folders path, if subfolder exsits input '\\' between folders.
+    """
 
     for folder in req_folders:
         if os.path.exists(folder) is False:
@@ -78,3 +86,70 @@ class mysql_connector():
     def close_conn(self):
         self.sql_conn.close()
         print("> Connection to the MySQL was closed.")
+
+
+######################################################
+# A small helper to send output to both CMD and a file
+class OutputTee:
+    def __init__(self, *streams):
+        self.streams = streams
+
+    def write(self, data):
+        for stream in self.streams:
+            stream.write(data)
+            stream.flush()
+
+    def flush(self):
+        for stream in self.streams:
+            stream.flush()
+
+
+# ##########################
+# Running Pipeline with test
+def run_pipeline(test_pipeline,
+                 pipeline_name:str = ""
+                 ):
+    """
+    test_pipeline -> the pipeline uninitited unittest pipeline we want to run
+    pipeline_name : str -> pipeline name in string format.
+    """
+    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
+    db = read_json()["database"]["db_name"]
+    reports_path = f"reports\\{db}\\"
+    create_folders([reports_path])
+    
+
+    # f is your text file -> sys.stdout is the CMD consol
+    with open(reports_path+f"{pipeline_name}_[{current_time}]_report_.txt", "w", encoding="utf-8") as f:
+        # sys.stdout is the CMD console
+        # f is your text file
+        dual_stream = OutputTee(sys.stdout, f)
+        
+        runner = unittest.TextTestRunner(
+            stream=dual_stream, 
+            verbosity=2, 
+            descriptions=True
+        )
+
+        # Initialize the runner
+        runner = unittest.TextTestRunner(
+                stream=dual_stream, 
+                verbosity=2, 
+                descriptions=True
+                )
+        
+        # unitest  loader object
+        loader = unittest.TestLoader()
+
+        # Load tests from the specific class
+        suite = loader.loadTestsFromTestCase(test_pipeline) 
+        
+        # Run with high verbosity for detail
+        result = runner.run(suite)
+        
+        # Custom detailed summary
+        print("\n--- PIPELINE EXECUTION SUMMARY ---")
+        if result.wasSuccessful():
+            print("Final Status: SUCCESS V")
+        else:
+            print(f"Final Status: FAILED X ({len(result.failures) + len(result.errors)} issues found)")
