@@ -19,7 +19,6 @@ packages suite.
 Please ensure the following python modules are installed:
 - `Pandas`
 - `NumPy` 
-- `Matplotlib` 
 - `SciPy`
 - `tqdm`
 - `pandarallel`

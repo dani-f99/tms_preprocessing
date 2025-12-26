@@ -1,10 +1,35 @@
 # Import required packages
 from datetime import datetime
+import importlib.metadata
 import mysql.connector
 import unittest
 import json
 import sys
 import os
+
+
+##############################################################
+# Custom function that cheeck if python packages are installed
+def check_packages(package_names):
+    status = {}
+
+    n_total = len(package_names)
+    n_installed = 0
+    for pkg in package_names:
+        try:
+            # metadata.version returns the version string if installed
+            dist_version = importlib.metadata.version(pkg)
+            status[pkg] = f"Installed (v{dist_version})"
+            n_installed += 1
+
+        except importlib.metadata.PackageNotFoundError:
+            status[pkg] = "Not Installed !!!"
+    
+    print(f"> {n_installed}/{n_total} packages are installed:")
+    for i in status:
+        print(f"{i} package is {status[i]}")
+
+    return status
 
 
 ####################################################################
