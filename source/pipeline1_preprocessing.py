@@ -37,11 +37,11 @@ class PipelinePreprocessingTest(unittest.TestCase):
 
         # Cheecking if database assosiated talbes exsists
         create_folders()
-        create_folders(req_folders=[f"{i}\\{cls.db_name}" for i in ["temp_data", "tms_input", "reports"]])
+        create_folders(req_folders=[os.path.join(i, cls.db_name) for i in ["temp_data", "tms_input", "reports"]])
 
         # Setting paths
-        cls.path_temp = f"temp_data\\{cls.db_name}\\"
-        cls.trimer_dict_path = "source\\tables\\trimersDict.csv"
+        cls.path_temp = os.path.join("temp_data", {cls.db_name})
+        cls.trimer_dict_path = os.path.join("source", "tables", "trimersDict.csv")
 
 
     ################################################################################################
@@ -51,9 +51,9 @@ class PipelinePreprocessingTest(unittest.TestCase):
 
         # Itirating over the subjects (list from `json.config`)
         for subject_i in self.subjects:
-            toFile = self.path_temp + "1_{}_{}.csv".format(self.db_name, subject_i)
-            toFile1 = self.path_temp + "1_AA_{}_{}.csv".format(self.db_name, subject_i)
-            toFile2 = self.path_temp + "1_{}_{}_seqK.csv".format(self.db_name, subject_i)
+            toFile = os.path.join(self.path_temp, "1_{}_{}.csv".format(self.db_name, subject_i))
+            toFile1 = os.path.join(self.path_temp, "1_AA_{}_{}.csv".format(self.db_name, subject_i))
+            toFile2 = os.path.join(self.path_temp, "1_{}_{}_seqK.csv".format(self.db_name, subject_i))
 
             bool_files = [os.path.exists(i) for i in [toFile, toFile1, toFile2]]
 
@@ -65,13 +65,6 @@ class PipelinePreprocessingTest(unittest.TestCase):
                 mysql_conn = mysql_connector()
                 mydb = mysql_conn.setup_conn()
                 
-                
-                #mydb = mysql.connector.connect(
-                #                                host=self.config_sql["adress"],
-                #                                user=self.config_sql["username"],
-                #                                passwd=self.config_sql["password"],
-                #                                auth_plugin='mysql_native_password',
-                #                               )
 
                 cmd = f"""SELECT seq.*, coll.* FROM {self.db_name}.sequences 
                                                                            AS seq INNER JOIN {self.db_name}.sequence_collapse 
@@ -83,7 +76,7 @@ class PipelinePreprocessingTest(unittest.TestCase):
                 
                 mycursor = mydb.cursor(dictionary=True)
 
-                removed = f"temp_data\\{self.db_name}\\{self.db_name}_rem.csv"
+                removed = os.path.join("temp_data", self.db_name, f"{self.db_name}_rem.csv")
 
                 #Command for getting the sequences translated:
                 command = (cmd)
@@ -263,14 +256,14 @@ class PipelinePreprocessingTest(unittest.TestCase):
 
 
         for subject_id in self.subjects:
-            output_file = dir_path + "\\2_{}_{}_byScore.csv".format(DB, subject_id)
+            output_file = os.path.join(dir_path, "2_{}_{}_byScore.csv".format(DB, subject_id))
 
         if os.path.exists(output_file):
             print("> Step No.2 of the preprocessing already done, continuing to step 3.")
 
         else:
             print("ID = {}".format(subject_id))
-            kmers=pd.read_csv(dir_path + r"1_{}_{}_seqK.csv".format(DB, subject_id), usecols=col_list)
+            kmers=pd.read_csv(os.path.join(dir_path, "1_{}_{}_seqK.csv".format(DB, subject_id)), usecols=col_list)
             
             kmers = kmers.rename(columns = {'Unique-SeqKmer': 'Kmers'}, inplace = False)
             kmers = kmers.rename(columns = {'k-mer': 'Kmers'}, inplace = False)
@@ -321,8 +314,8 @@ class PipelinePreprocessingTest(unittest.TestCase):
         dir_path = self.path_temp #temp file path
         
         for subject_id in self.subjects:
-            input_file = dir_path + "2_{}_{}_byScore.csv".format(DB, subject_id)
-            output_file = dir_path + "3_{}_{}_VarRemain.csv".format(DB,subject_id)
+            input_file = os.path.join(dir_path, "2_{}_{}_byScore.csv".format(DB, subject_id))
+            output_file = os.path.join(dir_path, "3_{}_{}_VarRemain.csv".format(DB,subject_id))
 
             if os.path.exists(output_file):
                 print("> Step No.3 of the preprocessing already done, continuing to step 4.")
@@ -475,8 +468,8 @@ class PipelinePreprocessingTest(unittest.TestCase):
         dir_path = self.path_temp #temp file path
         
         for subject_id in self.subjects:
-            input_file = dir_path + "3_{}_{}_VarRemain.csv".format(DB, subject_id)
-            output_file = dir_path + "4_{}_{}_slidingwindow_Var.csv".format(DB, subject_id)
+            input_file = os.path.join(dir_path, "3_{}_{}_VarRemain.csv".format(DB, subject_id))
+            output_file = os.path.join(dir_path, "4_{}_{}_slidingwindow_Var.csv".format(DB, subject_id))
 
             if os.path.exists(output_file):
                 print("> Step No.4 of the preprocessing already done, continuing to step 5.")
@@ -513,8 +506,8 @@ class PipelinePreprocessingTest(unittest.TestCase):
         dir_path = self.path_temp #temp file path
         
         for subject_id in self.subjects:
-            input_file = dir_path + "4_{}_{}_slidingwindow_Var.csv".format(DB, subject_id)
-            output_file = dir_path + "5_{}_{}_filtered_trimers_VarRemain.csv".format(DB, subject_id)
+            input_file = os.path.join(dir_path, "4_{}_{}_slidingwindow_Var.csv".format(DB, subject_id))
+            output_file = os.path.join(dir_path, "5_{}_{}_filtered_trimers_VarRemain.csv".format(DB, subject_id))
 
             if os.path.exists(output_file):
                 print("> Step No.5 of the preprocessing already done, continuing to step 6.")
@@ -558,7 +551,7 @@ class PipelinePreprocessingTest(unittest.TestCase):
                 
                 len(required_trimers_sorted)
                 
-                result=pd.DataFrame(data=required_trimers_sorted,columns=["trimer"])
+                result=pd.DataFrame(data=required_trimers_sorted, columns=["trimer"])
                 
                 # Filtered trimers save PATH
                 result.to_csv(output_file)
@@ -571,9 +564,9 @@ class PipelinePreprocessingTest(unittest.TestCase):
         dir_path = self.path_temp #temp file path
         
         for subject_id in self.subjects:
-            input_df = dir_path + "4_{}_{}_slidingwindow_Var.csv".format(DB, subject_id)
-            input_vocab = dir_path + "5_{}_{}_filtered_trimers_VarRemain.csv".format(DB, subject_id)
-            output_file = dir_path + "6_{}_{}_svar_SlidingWindow_filter.csv".format(DB, subject_id)
+            input_df = os.path.join(dir_path, "4_{}_{}_slidingwindow_Var.csv".format(DB, subject_id))
+            input_vocab = os.path.join(dir_path, "5_{}_{}_filtered_trimers_VarRemain.csv".format(DB, subject_id))
+            output_file = os.path.join(dir_path, "6_{}_{}_svar_SlidingWindow_filter.csv".format(DB, subject_id))
 
             if os.path.exists(output_file):
                 print("> Step No.6 of the preprocessing already done, continuing to step 7.")
@@ -626,8 +619,8 @@ class PipelinePreprocessingTest(unittest.TestCase):
         dir_path = self.path_temp #temp file path
         
         for subject_id in self.subjects:
-            input_df = dir_path + "6_{}_{}_svar_SlidingWindow_filter.csv".format(DB, subject_id)
-            output_file = dir_path + "7_{}_{}_VarRemain_trimer_weights.p".format(DB, subject_id)
+            input_df = os.path.join(dir_path, "6_{}_{}_svar_SlidingWindow_filter.csv".format(DB, subject_id))
+            output_file = os.path.join(dir_path, "7_{}_{}_VarRemain_trimer_weights.p".format(DB, subject_id))
 
             # Trimers dictionary PATH
             #Trimers Table    
@@ -683,4 +676,3 @@ class PipelinePreprocessingTest(unittest.TestCase):
                 
                 # Trimers weights Save PATH
                 pickle.dump(result, open(output_file, "wb"))
-                                         
