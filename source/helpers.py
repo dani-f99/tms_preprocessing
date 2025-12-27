@@ -145,12 +145,13 @@ def run_pipeline(test_pipeline,
     """
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
     db = read_json()["database"]["db_name"]
-    reports_path = f"reports\\{db}\\"
+    reports_path = os.path.join("reports", db)
+    report_name = f"{pipeline_name}_[{current_time}]_report_.txt"
     create_folders([reports_path])
     
 
-    # f is your text file -> sys.stdout is the CMD consol
-    with open(reports_path+f"{pipeline_name}_[{current_time}]_report_.txt", "w", encoding="utf-8") as f:
+    # f is the text file -> sys.stdout is the CMD consol
+    with open(os.path.join(reports_path, report_name), "w", encoding="utf-8") as f:
         # sys.stdout is the CMD console
         # f is your text file
         dual_stream = OutputTee(sys.stdout, f)
