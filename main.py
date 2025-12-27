@@ -18,4 +18,4 @@ create_folders(["temp_data", "tms_input", "reports"])
 # Execute the pipeline
 if __name__ == "__main__":
     pipeline1_result = run_pipeline(PipelinePreprocessingTest, pipeline_name="preprocessing_pipeline1")
-    #pipeline2_results = run_pipeline(PipelineMatrixMakerTest, pipeline_name="matrixmaker_pipeline2")
+    pipeline2_results = run_pipeline(PipelineMatrixMakerTest, pipeline_name="matrixmaker_pipeline2")
