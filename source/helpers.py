@@ -61,12 +61,12 @@ protein = {"TTT" : "F", "CTT" : "L", "ATT" : "I", "GTT" : "V",
 
 ################################################################################$$##########
 # Reading information from json file. Used to extract the parameters from the `config.json`.
-def read_json(path:str = "sql_config.json") -> dict:
+def read_json(path:str = "config.json") -> dict:
     """
     path : str -> path of the json file
     """
 
-    with open('sql_config.json') as config:
+    with open('config.json') as config:
         config_f = json.load(config)
 
     return config_f
