@@ -26,9 +26,11 @@ Please ensure the following python modules are installed:
 
 
 ## 3. USAGE GUIDE
-1. Congifgure the `congif.json` file (see section 4 - config).
+1. Congifgure the `sql_congif.json` file (see section 4 - config) by:
+   - rename `sql_congif.json.example` to `sql_congif.json`.
+   - Fill the sql connection and database information as illusrated.
    - Once the custom python modules will be loaded the script will initiate
-   the required folders and import the `congif.json` information into `config`
+   the required folders and import the `sql_congif.json` information into `config`
    variable.
 2. Run the `main.py` file via cmd
 
@@ -53,6 +55,5 @@ The program uses the following folder structure:
 - `reports`: The program will save report for each run to this folder with as `date_database_subject.txt`.
 
 
-	  
 ## 6. RESOUCES
-- 
+- See origin authurs pdf tuorial at the `source\bshara` folder (readme.pdf).
