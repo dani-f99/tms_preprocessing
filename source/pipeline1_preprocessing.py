@@ -259,52 +259,52 @@ class PipelinePreprocessingTest(unittest.TestCase):
         for subject_id in self.subjects:
             output_file = os.path.join(dir_path, "2_{}_{}_byScore.csv".format(DB, subject_id))
 
-        if os.path.exists(output_file):
-            print("> Step No.2 of the preprocessing already done, continuing to step 3.")
+            if os.path.exists(output_file):
+                print("> Step No.2 of the preprocessing already done, continuing to step 3.")
 
-        else:
-            print("ID = {}".format(subject_id))
-            kmers=pd.read_csv(os.path.join(dir_path, "1_{}_{}_seqK.csv".format(DB, subject_id)), usecols=col_list)
-            
-            kmers = kmers.rename(columns = {'Unique-SeqKmer': 'Kmers'}, inplace = False)
-            kmers = kmers.rename(columns = {'k-mer': 'Kmers'}, inplace = False)
-            
-            
-            print(len(kmers))
-            kmers['id']=kmers.index
-            
-            l=kmers.values.tolist()
-            
-            d = {}
-            for i in tqdm(l):
-                d[i[0]] = []
-            for j in tqdm(l):
-                if (j[3] not in d[j[0]]):
-                    d[j[0]].append(j[3])
-            
-            
-            new_df=pd.DataFrame(kmers['Kmers'])
-            l=new_df.values.tolist()
-            flat_list = []
-            for sublist in l:
-                for item in sublist:
-                    flat_list.append(item)
-            l = flat_list
-            def count_uniqe(lst):
-                new_vals = Counter(l).most_common()
-                new_vals = new_vals[::1] #this sorts the list in scending order
-                return new_vals
-            
-            new_list=count_uniqe(l)
-            
-            df = pd.DataFrame(new_list, columns =['kmer', 'score'])
+            else:
+                print("ID = {}".format(subject_id))
+                kmers=pd.read_csv(os.path.join(dir_path, "1_{}_{}_seqK.csv".format(DB, subject_id)), usecols=col_list)
+                
+                kmers = kmers.rename(columns = {'Unique-SeqKmer': 'Kmers'}, inplace = False)
+                kmers = kmers.rename(columns = {'k-mer': 'Kmers'}, inplace = False)
+                
+                
+                print(len(kmers))
+                kmers['id']=kmers.index
+                
+                l=kmers.values.tolist()
+                
+                d = {}
+                for i in tqdm(l):
+                    d[i[0]] = []
+                for j in tqdm(l):
+                    if (j[3] not in d[j[0]]):
+                        d[j[0]].append(j[3])
+                
+                
+                new_df=pd.DataFrame(kmers['Kmers'])
+                l=new_df.values.tolist()
+                flat_list = []
+                for sublist in l:
+                    for item in sublist:
+                        flat_list.append(item)
+                l = flat_list
+                def count_uniqe(lst):
+                    new_vals = Counter(l).most_common()
+                    new_vals = new_vals[::1] #this sorts the list in scending order
+                    return new_vals
+                
+                new_list=count_uniqe(l)
+                
+                df = pd.DataFrame(new_list, columns =['kmer', 'score'])
 
-            
-            def inx(kmer):
-                return d[kmer][0]
-            df['id']=df.kmer.apply(inx)
-            
-            df.to_csv(output_file, index=False)
+                
+                def inx(kmer):
+                    return d[kmer][0]
+                df['id']=df.kmer.apply(inx)
+                
+                df.to_csv(output_file, index=False)
 
 
     ########################################
