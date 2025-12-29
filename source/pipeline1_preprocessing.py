@@ -32,7 +32,7 @@ class PipelinePreprocessingTest(unittest.TestCase):
         cls.config_db = read_json()["database"]
         cls.db_name = cls.config_db["db_name"]
         cls.time_start = datetime.now()
-        cls.subjects = list(cls.config_db["subject_id"])
+        cls.subjects = [int(i) for i in cls.config_db["subject_id"].split(",")]
         
 
         # Cheecking if database assosiated talbes exsists

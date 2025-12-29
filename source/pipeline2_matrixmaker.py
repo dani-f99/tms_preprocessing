@@ -31,11 +31,10 @@ class PipelineMatrixMakerTest(unittest.TestCase):
         cls.config_db = read_json()["database"]
         cls.db_name = cls.config_db["db_name"]
         cls.time_start = datetime.now()
-        cls.subjects = list(cls.config_db["subject_id"])
+        cls.subjects = [int(i) for i in cls.config_db["subject_id"].split(",")]
         
 
         # Setting paths
-        
         cls.path_temp = os.path.join("temp_data", cls.db_name)
         cls.path_final = os.path.join("tms_input", cls.db_name)
 
