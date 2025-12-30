@@ -1,5 +1,6 @@
 source/__pycache__
 sql_config.json
+dev_notebook.ipynb
 temp_data
 tms_input
 reports
