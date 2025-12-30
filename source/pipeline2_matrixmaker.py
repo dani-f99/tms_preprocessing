@@ -50,7 +50,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
             input_sliding_window = os.path.join(temp_path, "6_{}_{}_svar_SlidingWindow_filter.csv".format(DB, subject_id))
             input_trimers_weights = os.path.join(temp_path, "7_{}_{}_VarRemain_trimer_weights.p".format(DB, subject_id))
             input_vocab = os.path.join(temp_path, "5_{}_{}_filtered_trimers_VarRemain.csv".format(DB, subject_id))
-            output_file = os.path.join(dir_path, "\\{}_{}_matrix".format(DB, subject_id))
+            output_file = os.path.join(dir_path, "{}_{}_matrix.mtx".format(DB, subject_id))
 
             if os.path.exists(output_file):
                 print("> Step No.1 of the matrix creation pipeline already done, continuing to step 2.")
@@ -96,8 +96,8 @@ class PipelineMatrixMakerTest(unittest.TestCase):
                             length_counter+=1
                             
                     kmers_counter+=1
-                shape_rows = max(Kmers)+1
-                shape_columns = max(Trimers)+1
+                shape_rows = len(Kmers)
+                shape_columns = len(Trimers)
                 print("The shape of the dense matrix is: {} rows x {} columns".format(shape_rows, shape_columns))
                 
                 row = np.array(Kmers)
@@ -119,19 +119,19 @@ class PipelineMatrixMakerTest(unittest.TestCase):
         
         for subject_id in self.subjects:
             input_temp_kmer_path = os.path.join(temp_path, "3_{}_{}_VarRemain.csv".format(DB, subject_id))
-            output_file = os.path.join(dir_path, "\\{}_{}_barcodes.tsv".format(DB, subject_id))
+            output_file = os.path.join(dir_path, "{}_{}_barcodes.tsv".format(DB, subject_id))
 
             if os.path.exists(output_file):
                 print("> Step No.2 of the matrix creation pipeline already done, continuing to step 3.")
             
             else:
-                temp_kmer_path = input_temp_kmer_path
-                temp_kmer = pd.read_csv(temp_kmer_path).shape[0] + 1
+                temp_kmer_df = pd.read_csv(input_temp_kmer_path, index_col=0)
+                temp_kmer_df_kmers = temp_kmer_df.index
                 
                 with open(output_file, 'wt') as out_file:
                     tsv_writer=csv.writer(out_file,delimiter='\t')
-                    for i in range(1,temp_kmer):
-                        tsv_writer.writerow([i])
+                    for i in range(len(temp_kmer_df_kmers)):
+                        tsv_writer.writerow([temp_kmer_df_kmers[i]])
 
     
     #######################################
@@ -143,16 +143,17 @@ class PipelineMatrixMakerTest(unittest.TestCase):
         
         for subject_id in self.subjects:
             input_temp_trimer_path = os.path.join(temp_path, "5_{}_{}_filtered_trimers_VarRemain.csv".format(DB, subject_id))
-            output_file = os.path.join(dir_path, "\\{}_{}_genes.tsv".format(DB, subject_id))
+            output_file = os.path.join(dir_path, "{}_{}_genes.tsv".format(DB, subject_id))
 
             if os.path.exists(output_file):
                 print("> Step No.3 of the matrix creation pipeline already done, process is done.")
             
             else:
-                temp_trimer = pd.read_csv(input_temp_trimer_path).shape[0]+1
+                temp_trimer_df = pd.read_csv(input_temp_trimer_path, index_col=0)
+                temp_trimer_list = temp_trimer_df.trimer.values
                 
                 with open(output_file, 'wt') as out_file:
                     tsv_writer=csv.writer(out_file,delimiter='\t')
                     
-                    for i in range(1,temp_trimer):
-                        tsv_writer.writerow([i])
+                    for i in range(len(temp_trimer_list)):
+                        tsv_writer.writerow([temp_trimer_list[i]])
