@@ -1,4 +1,5 @@
 # Import required packages
+from sqlalchemy import create_engine
 from datetime import datetime
 import importlib.metadata
 import mysql.connector
@@ -88,34 +89,37 @@ def create_folders(req_folders : list = ["temp_data", "tms_input", "reports"]):
             print(f"> folder `{folder}` exists, continuing.")
 
 
-#####################
-# sql connector class
-class mysql_connector():
+######################################################################################################
+# A custom function that connects to MySQL server, execute query and returns the results as dataframe.
+def mysql_qry(qry:str,
+              username:str = read_json()["sql"]["username"],
+              password:str= read_json()["sql"]["password"],
+              adress:str= read_json()["sql"]["adress"],
+              port:str= read_json()["sql"]["port"],
+              db_name:str = read_json()["database"]["db_name"]) -> pd.DataFrame:
+    """
+    username:str -> Username credentials for the MySQL server.
+    password:str -> Password credentials for the MySQL server.
+    adress:str -> IP adress of the MySQL server.
+    port:str -> Port of the MySQL server.
+    qry:str -> SQL query to be executed.
+    """
+    
+    # Setting up MySQL connenction
+    connection_mysql = f"mysql+pymysql://{username}:{password}@{adress}:{port}/{db_name}"
+    engine = create_engine(connection_mysql)
+    print(f"> Established connecntion to the {db_name} database.")
 
-    # Getting the connection information from the config
-    def __init__(self):
-        self.conn_cred = read_json()["sql"]
-
-    # Setting the sql connection
-    def setup_conn(self):
-        try:
-            self.sql_conn = mysql.connector.connect(
-                                                    host=self.conn_cred["adress"],
-                                                    user=self.conn_cred["username"],
-                                                    passwd=self.conn_cred["password"],
-                                                    auth_plugin='mysql_native_password',
-                                                    )
-            print("> Established connection to the MySQL server.")
-            
-            return self.sql_conn
-
-        except:
-            raise Exception("> Failed to establish connection to the MySQL server!")
-        
-    # Closing the sql connection
-    def close_conn(self):
-        self.sql_conn.close()
-        print("> Connection to the MySQL was closed.")
+    # Executing the query
+    qry_df = pd.read_sql(qry, engine)
+    print(f"> Query executed successfully: \n{qry}")
+    
+    # Closing the connenction
+    engine.dispose()
+    print("> MySQL connenction terminated.")
+    
+    # Returing the table as pd.dataframe
+    return qry_df
 
 
 ######################################################

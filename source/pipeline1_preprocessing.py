@@ -1,7 +1,8 @@
 # helper functions import
-from .helpers import protein, read_json, create_folders, mysql_connector
+from .helpers import protein, read_json, create_folders #, mysql_connector
 
 # Python packages import
+from sqlalchemy import create_engine, text
 from pandarallel import pandarallel
 from collections import Counter
 from datetime import datetime
@@ -62,11 +63,13 @@ class PipelinePreprocessingTest(unittest.TestCase):
                 print("> Step No.1 of the preprocessing already done, continuing to step 2.")
             
             else:
-                # Setting up sql connection
-                mysql_conn = mysql_connector()
-                mydb = mysql_conn.setup_conn()
+                # Setting-up sql connection credentials
+                sql_cred = read_json()["sql"]
+                adress, port, username, password = sql_cred.values()
+                db_name = read_json()["database"]["db_name"]
                 
-
+                # connecting to the MySQL database and defining qry
+                engine = create_engine(f"mysql+pymysql://{username}:{password}@{adress}:{port}/{db_name}")
                 cmd = f"""SELECT seq.*, coll.* FROM {self.db_name}.sequences 
                                                                            AS seq INNER JOIN {self.db_name}.sequence_collapse 
                                                                            AS coll ON seq.ai=coll.seq_ai WHERE seq.subject_id={int(subject_i)} 
@@ -74,16 +77,16 @@ class PipelinePreprocessingTest(unittest.TestCase):
                             AND coll.copy_number_in_subject > 1
                             AND seq.deletions is null 
                             AND seq.insertions is null"""
-                
-                mycursor = mydb.cursor(dictionary=True)
 
                 removed = os.path.join("temp_data", self.db_name, f"{self.db_name}_rem.csv")
 
+                # Getting the data from the sql server
+                with engine.connect() as conn:
+                    result = conn.execute(text(cmd))
+                    seq = [dict(row) for row in result.mappings()]
+
                 #Command for getting the sequences translated:
-                command = (cmd)
                 print("Translating starts ....")     
-                mycursor.execute(command)
-                seq = mycursor.fetchall()
                 with open(toFile, 'w',newline='') as new_file:
                     csv_writer = csv.writer(new_file)
                     csv_writer.writerow(['seq_id','sequence','TranslatedSeq','TranslatedGermline','ai','subject_id','clone_id','sample_id'])
@@ -244,8 +247,6 @@ class PipelinePreprocessingTest(unittest.TestCase):
                             #Function for the k-mers!
                             kmersFunc(KmerS,20)
                         print("Kmers extraction DONE!")
-
-                mysql_conn.close_conn()
     
     
     #######################################
