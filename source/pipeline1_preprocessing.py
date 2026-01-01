@@ -574,43 +574,58 @@ class PipelinePreprocessingTest(unittest.TestCase):
                 print("> Step No.6 of the preprocessing already done, continuing to step 7.")
 
             else:
-                # SlidingWindow kmers after variance PATH
-                df = pd.read_csv(input_df, usecols=["SlidingWindow"])
-                
-                vocab = pd.read_csv(input_vocab, index_col=False)
-                vocab.drop('Unnamed: 0',axis='columns', inplace=True)
-                
-                li=set(vocab['trimer'])
-                
-                reqiured_kmers=set()
-                for index, row in tqdm(df.iterrows()):
-                    kmer_list = row['SlidingWindow']
-                    kmer_list = re.sub(r"[^A-Za-z0-9(),]", "", kmer_list)
-                    kmer_list = re.sub(r"[^A-Za-z0-9()]", " ", kmer_list)
-                    kmer_list = set(kmer_list.split(" "))
-                    for kmer in kmer_list:
-                        if kmer in li:
-                            reqiured_kmers.add(index)            
-                reqiured_kmers
+#                # SlidingWindow kmers after variance PATH
+#                df = pd.read_csv(input_df, usecols=["SlidingWindow"])
+#                
+#                vocab = pd.read_csv(input_vocab, index_col=False)
+#                vocab.drop('Unnamed: 0',axis='columns', inplace=True)
+#                
+#                li=set(vocab['trimer'])
+#                
+#                reqiured_kmers=set()
+#                for index, row in tqdm(df.iterrows()):
+#                    kmer_list = row['SlidingWindow']
+#                    kmer_list = re.sub(r"[^A-Za-z0-9(),]", "", kmer_list)
+#                    kmer_list = re.sub(r"[^A-Za-z0-9()]", " ", kmer_list)
+#                    kmer_list = set(kmer_list.split(" "))
+#
+#                    for kmer in kmer_list:
+#                        if kmer in li:
+#                            reqiured_kmers.add(index)            
+#                reqiured_kmers
+# 
+#                new_list=[]
+#                for kmer in reqiured_kmers:
+#                    new_list.append(df.iloc[kmer])
+#                
+#                df_new=pd.DataFrame(data=new_list)
+#                
+#                # Filtered sliding window kmers PATH
+#                df_new.to_csv(output_file, index=False)
+#
+                # 1. Prepare the vocabulary set
+                vocab = pd.read_csv(input_vocab)
+                li = set(vocab['trimer'])
 
-                
-                new_list=[]
-                for kmer in reqiured_kmers:
-                    new_list.append(df.iloc[kmer])
-                
-                df_new=pd.DataFrame(data=new_list)
-                df_new
-                
-                df_new.loc[df_new.index==349050]
-                
-                counter=0
-                for i in df_new.index:
-                    if i != counter:
-                        print(counter)
-                        counter+=1
-                    counter+=1
-                
-                # Filtered sliding window kmers PATH
+                # 2. Load data
+                df = pd.read_csv(input_df, usecols=["SlidingWindow"])
+
+                # 3. Define a cleaning function
+                def has_required_kmer(row_string):
+                    if not isinstance(row_string, str): return False
+                    # Clean the string similar to your regex
+                    clean_str = re.sub(r"[^A-Za-z0-9(),]", "", row_string)
+                    clean_str = re.sub(r"[^A-Za-z0-9()]", " ", clean_str)
+                    # Check if any k-mer in this row exists in our vocabulary set
+                    tokens = clean_str.split()
+                    return any(kmer in li for kmer in tokens)
+
+                # 4. Apply the filter (Vectorized approach)
+                # This creates a True/False mask for every row
+                mask = df['SlidingWindow'].apply(has_required_kmer)
+                df_new = df[mask]
+
+                # 5. Save
                 df_new.to_csv(output_file, index=False)
 
 
