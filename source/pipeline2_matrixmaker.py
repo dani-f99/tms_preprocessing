@@ -1,5 +1,5 @@
 # Custom functions import
-from .helpers import read_json
+from .helpers import read_json, mysql_qry
 
 # Import of python packages
 from scipy.sparse import csr_matrix
@@ -110,11 +110,11 @@ class PipelineMatrixMakerTest(unittest.TestCase):
                 scipy.io.mmwrite(output_file, sparse_matrix)
     
     
-    #######################################
-    # 2nd step of the tsm input preparation
+    #############################################################################
+    # 2nd step of the tsm input preparation - barcodes creation (k-mers, columns)
     def test_02_barcodes_creator(self):
         DB = self.db_name #database name
-        temp_path = self.path_temp
+        temp_path = self.path_temp # first preprocessing pipeline path
         dir_path = self.path_final #final file path
         
         for subject_id in self.subjects:
@@ -134,11 +134,11 @@ class PipelineMatrixMakerTest(unittest.TestCase):
                         tsv_writer.writerow([temp_kmer_df_kmers[i]])
 
     
-    #######################################
-    # 3rd step of the tsm input preparation
+    #############################################################################
+    # 3rd step of the tsm input preparation - genes list creation (trimers, rows)
     def test_03_feature_creator(self):
         DB = self.db_name #database name
-        temp_path = self.path_temp
+        temp_path = self.path_temp # first preprocessing pipeline path
         dir_path = self.path_final #final file path
         
         for subject_id in self.subjects:
@@ -157,3 +157,64 @@ class PipelineMatrixMakerTest(unittest.TestCase):
                     
                     for i in range(len(temp_trimer_list)):
                         tsv_writer.writerow([temp_trimer_list[i]])
+
+    #########################################################
+    # 4th step of the tsm input preparation - labels creation
+    def test_04_labels_creator(self):
+        DB = self.db_name #database name
+        temp_path = self.path_temp # first preprocessing pipeline path
+        dir_path = self.path_final #final file path
+
+        for subject_id in self.subjects:
+            output_file = os.path.join(dir_path, "{}_{}_labels.csv").format(DB, subject_id) # path for the labels.csv
+
+            if os.path.exists(output_file):
+                print("> Step No.3 of the matrix creation pipeline already done, process is done.")
+            
+            else:
+                # Importing the metadata table from the MySQL serever
+                # Setting up label and mysql query
+                metadata_label = self.config_db["metadata_label"]
+                metadata_qry = "SELECT * FROM covid_vaccine_new.sample_metadata"
+                metadata_df = mysql_qry(qry=metadata_qry)
+                
+                
+                # Verifing that there is `metadata_label` input in the `sql_congif.json` file
+                if metadata_label == "":
+                    print("> No metadata label selected, aborting creation of `labels.csv`")
+                
+                else:
+                    print(f"metadata label `{metadata_label}` selected, creating `labels.csv`.")
+
+                    # Dictionary that link sample_id to metadata label:
+                    filt_df = metadata_df[metadata_df["key"] == metadata_label]
+                    labels_dict = {int(i):j for i,j in zip(filt_df.sample_id.values, filt_df.value.values)}
+
+                    # Loading the required datasets in order backtrack to the first metadata contining files
+                    """
+                    Steps of the backtracking:
+                    1. getting the `id` labels from the k-mers used to create the barcodes (f03).
+                    2. merging the filterd k-mers (f03) with the k-mer table (f01) by 'id'.
+                    """
+                
+                    # Importing the preprocsssed tables
+                    input_f03_kmers = os.path.join(temp_path, "3_{}_{}_VarRemain.csv".format(DB, subject_id)) # filtred k-mer file (used for barcodes creation)
+                    input_01_seqk = os.path.join(temp_path, "1_{}_{}_seqK.csv".format(DB, subject_id)) # initial k-mer file (with metadata)
+                    input_barcodes = os.path.join(dir_path, "covid_vaccine_new_7_barcodes.tsv".format(DB, subject_id)) # path of the barcodes.tsv
+                    
+                    # Joining the tables to get the sample id
+                    f01_df = pd.read_csv(input_01_seqk).reset_index(names="id")
+                    f03_df = pd.read_csv(input_f03_kmers)
+                    barcodes_df = pd.read_csv(input_barcodes, sep="\t", index_col=None, header=None)
+                    barcodes_df.columns = ["kmer"]
+
+                    # Using the labels_dict to map the labels (via sample id)
+                    merged_df = pd.merge(left=f01_df, right=f03_df, how="right", on="id")[["kmer","id","sample_id"]]
+                    merged_df["label"] = merged_df.sample_id.map(labels_dict)
+
+                    # Adding labels to the k-kmers
+                    labels_df = pd.merge(left=barcodes_df, right=merged_df, on="kmer", how="left")[["kmer", "label"]]
+                    labels_df.columns = [["item","label"]]
+                    labels_df.to_csv(output_file, index=0)
+
+                    print(f"{output_file} labels file created.")

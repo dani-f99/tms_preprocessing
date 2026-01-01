@@ -4,6 +4,7 @@
         "password":"mysql_password"
         },
  "database":{"db_name":"mysql_db",
-             "subject_id":"1,2,3"
+             "subject_id":"1,2,3",
+             "metadata_label":"cell_type"
              }         
 }
