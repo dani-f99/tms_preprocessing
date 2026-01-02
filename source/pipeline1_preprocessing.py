@@ -1,7 +1,8 @@
 # helper functions import
-from .helpers import protein, read_json, create_folders, mysql_connector
+from .helpers import protein, read_json, create_folders #, mysql_connector
 
 # Python packages import
+from sqlalchemy import create_engine, text
 from pandarallel import pandarallel
 from collections import Counter
 from datetime import datetime
@@ -62,11 +63,13 @@ class PipelinePreprocessingTest(unittest.TestCase):
                 print("> Step No.1 of the preprocessing already done, continuing to step 2.")
             
             else:
-                # Setting up sql connection
-                mysql_conn = mysql_connector()
-                mydb = mysql_conn.setup_conn()
+                # Setting-up sql connection credentials
+                sql_cred = read_json()["sql"]
+                adress, port, username, password = sql_cred.values()
+                db_name = read_json()["database"]["db_name"]
                 
-
+                # connecting to the MySQL database and defining qry
+                engine = create_engine(f"mysql+pymysql://{username}:{password}@{adress}:{port}/{db_name}")
                 cmd = f"""SELECT seq.*, coll.* FROM {self.db_name}.sequences 
                                                                            AS seq INNER JOIN {self.db_name}.sequence_collapse 
                                                                            AS coll ON seq.ai=coll.seq_ai WHERE seq.subject_id={int(subject_i)} 
@@ -74,16 +77,16 @@ class PipelinePreprocessingTest(unittest.TestCase):
                             AND coll.copy_number_in_subject > 1
                             AND seq.deletions is null 
                             AND seq.insertions is null"""
-                
-                mycursor = mydb.cursor(dictionary=True)
 
                 removed = os.path.join("temp_data", self.db_name, f"{self.db_name}_rem.csv")
 
+                # Getting the data from the sql server
+                with engine.connect() as conn:
+                    result = conn.execute(text(cmd))
+                    seq = [dict(row) for row in result.mappings()]
+
                 #Command for getting the sequences translated:
-                command = (cmd)
                 print("Translating starts ....")     
-                mycursor.execute(command)
-                seq = mycursor.fetchall()
                 with open(toFile, 'w',newline='') as new_file:
                     csv_writer = csv.writer(new_file)
                     csv_writer.writerow(['seq_id','sequence','TranslatedSeq','TranslatedGermline','ai','subject_id','clone_id','sample_id'])
@@ -244,8 +247,6 @@ class PipelinePreprocessingTest(unittest.TestCase):
                             #Function for the k-mers!
                             kmersFunc(KmerS,20)
                         print("Kmers extraction DONE!")
-
-                mysql_conn.close_conn()
     
     
     #######################################
@@ -573,43 +574,58 @@ class PipelinePreprocessingTest(unittest.TestCase):
                 print("> Step No.6 of the preprocessing already done, continuing to step 7.")
 
             else:
-                # SlidingWindow kmers after variance PATH
-                df = pd.read_csv(input_df, usecols=["SlidingWindow"])
-                
-                vocab = pd.read_csv(input_vocab, index_col=False)
-                vocab.drop('Unnamed: 0',axis='columns', inplace=True)
-                
-                li=set(vocab['trimer'])
-                
-                reqiured_kmers=set()
-                for index, row in tqdm(df.iterrows()):
-                    kmer_list = row['SlidingWindow']
-                    kmer_list = re.sub(r"[^A-Za-z0-9(),]", "", kmer_list)
-                    kmer_list = re.sub(r"[^A-Za-z0-9()]", " ", kmer_list)
-                    kmer_list = set(kmer_list.split(" "))
-                    for kmer in kmer_list:
-                        if kmer in li:
-                            reqiured_kmers.add(index)            
-                reqiured_kmers
+#                # SlidingWindow kmers after variance PATH
+#                df = pd.read_csv(input_df, usecols=["SlidingWindow"])
+#                
+#                vocab = pd.read_csv(input_vocab, index_col=False)
+#                vocab.drop('Unnamed: 0',axis='columns', inplace=True)
+#                
+#                li=set(vocab['trimer'])
+#                
+#                reqiured_kmers=set()
+#                for index, row in tqdm(df.iterrows()):
+#                    kmer_list = row['SlidingWindow']
+#                    kmer_list = re.sub(r"[^A-Za-z0-9(),]", "", kmer_list)
+#                    kmer_list = re.sub(r"[^A-Za-z0-9()]", " ", kmer_list)
+#                    kmer_list = set(kmer_list.split(" "))
+#
+#                    for kmer in kmer_list:
+#                        if kmer in li:
+#                            reqiured_kmers.add(index)            
+#                reqiured_kmers
+# 
+#                new_list=[]
+#                for kmer in reqiured_kmers:
+#                    new_list.append(df.iloc[kmer])
+#                
+#                df_new=pd.DataFrame(data=new_list)
+#                
+#                # Filtered sliding window kmers PATH
+#                df_new.to_csv(output_file, index=False)
+#
+                # 1. Prepare the vocabulary set
+                vocab = pd.read_csv(input_vocab)
+                li = set(vocab['trimer'])
 
-                
-                new_list=[]
-                for kmer in reqiured_kmers:
-                    new_list.append(df.iloc[kmer])
-                
-                df_new=pd.DataFrame(data=new_list)
-                df_new
-                
-                df_new.loc[df_new.index==349050]
-                
-                counter=0
-                for i in df_new.index:
-                    if i != counter:
-                        print(counter)
-                        counter+=1
-                    counter+=1
-                
-                # Filtered sliding window kmers PATH
+                # 2. Load data
+                df = pd.read_csv(input_df, usecols=["SlidingWindow"])
+
+                # 3. Define a cleaning function
+                def has_required_kmer(row_string):
+                    if not isinstance(row_string, str): return False
+                    # Clean the string similar to your regex
+                    clean_str = re.sub(r"[^A-Za-z0-9(),]", "", row_string)
+                    clean_str = re.sub(r"[^A-Za-z0-9()]", " ", clean_str)
+                    # Check if any k-mer in this row exists in our vocabulary set
+                    tokens = clean_str.split()
+                    return any(kmer in li for kmer in tokens)
+
+                # 4. Apply the filter (Vectorized approach)
+                # This creates a True/False mask for every row
+                mask = df['SlidingWindow'].apply(has_required_kmer)
+                df_new = df[mask]
+
+                # 5. Save
                 df_new.to_csv(output_file, index=False)
 
 

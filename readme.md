@@ -22,7 +22,7 @@ Please ensure the following python modules are installed:
 - `SciPy`
 - `tqdm`
 - `pandarallel`
-- `mysql.connector (mysql-connector-python)`
+- `sqlalchemy`
 
 
 ## 3. USAGE GUIDE
