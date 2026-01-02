@@ -116,6 +116,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
         DB = self.db_name #database name
         temp_path = self.path_temp # first preprocessing pipeline path
         dir_path = self.path_final #final file path
+        # brcodes (kmers) file: 6_{}_{}_filt_slidingwindow_Var.csv
         
         for subject_id in self.subjects:
             input_temp_kmer_path = os.path.join(temp_path, "3_{}_{}_VarRemain.csv".format(DB, subject_id))
@@ -136,6 +137,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
     
     #############################################################################
     # 3rd step of the tsm input preparation - genes list creation (trimers, rows)
+    # genes (trimers) file: "5_{}_{}_filtered_trimers_VarRemain.csv"
     def test_03_feature_creator(self):
         DB = self.db_name #database name
         temp_path = self.path_temp # first preprocessing pipeline path
@@ -160,6 +162,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
 
     #########################################################
     # 4th step of the tsm input preparation - labels creation
+    # brcodes (kmers) file: 6_{}_{}_filt_slidingwindow_Var.csv
     def test_04_labels_creator(self):
         DB = self.db_name #database name
         temp_path = self.path_temp # first preprocessing pipeline path
