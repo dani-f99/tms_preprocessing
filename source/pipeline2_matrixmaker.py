@@ -215,7 +215,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
                     barcodes_df.columns = ["kmer"]
 
                     # Getting the filtred kmers f03
-                    f03_df = f03_df[f03_df.index.isin(f06_df.kmer.values)]
+                    f03_df = f03_df[f03_df.kmer.isin(f06_df.kmer.values)]
 
                     # Using the labels_dict to map the labels (via sample id)
                     merged_df = pd.merge(left=f01_df, right=f03_df, how="right", on="id")[["kmer","id","sample_id"]]
