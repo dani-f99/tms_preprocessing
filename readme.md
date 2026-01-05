@@ -23,6 +23,7 @@ Please ensure the following python modules are installed:
 - `tqdm`
 - `pandarallel`
 - `sqlalchemy`
+- `pymysql`
 
 
 ## 3. USAGE GUIDE

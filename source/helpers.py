@@ -2,7 +2,6 @@
 from sqlalchemy import create_engine
 from datetime import datetime
 import importlib.metadata
-import mysql.connector
 import pandas as pd
 import unittest
 import json
