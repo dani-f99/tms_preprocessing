@@ -116,16 +116,17 @@ class PipelineMatrixMakerTest(unittest.TestCase):
         DB = self.db_name #database name
         temp_path = self.path_temp # first preprocessing pipeline path
         dir_path = self.path_final #final file path
+        # brcodes (kmers) file: 6_{}_{}_filt_slidingwindow_Var.csv
         
         for subject_id in self.subjects:
-            input_temp_kmer_path = os.path.join(temp_path, "3_{}_{}_VarRemain.csv".format(DB, subject_id))
+            input_temp_kmer_path = os.path.join(temp_path, "6_{}_{}_filt_slidingwindow_Var.csv".format(DB, subject_id))
             output_file = os.path.join(dir_path, "{}_{}_barcodes.tsv".format(DB, subject_id))
 
             if os.path.exists(output_file):
                 print("> Step No.2 of the matrix creation pipeline already done, continuing to step 3.")
             
             else:
-                temp_kmer_df = pd.read_csv(input_temp_kmer_path, index_col=0)
+                temp_kmer_df = pd.read_csv(input_temp_kmer_path, index_col=1)
                 temp_kmer_df_kmers = temp_kmer_df.index
                 
                 with open(output_file, 'wt') as out_file:
@@ -136,6 +137,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
     
     #############################################################################
     # 3rd step of the tsm input preparation - genes list creation (trimers, rows)
+    # genes (trimers) file: "5_{}_{}_filtered_trimers_VarRemain.csv"
     def test_03_feature_creator(self):
         DB = self.db_name #database name
         temp_path = self.path_temp # first preprocessing pipeline path
@@ -160,6 +162,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
 
     #########################################################
     # 4th step of the tsm input preparation - labels creation
+    # brcodes (kmers) file: 6_{}_{}_filt_slidingwindow_Var.csv
     def test_04_labels_creator(self):
         DB = self.db_name #database name
         temp_path = self.path_temp # first preprocessing pipeline path
@@ -198,15 +201,21 @@ class PipelineMatrixMakerTest(unittest.TestCase):
                     """
                 
                     # Importing the preprocsssed tables
-                    input_f03_kmers = os.path.join(temp_path, "3_{}_{}_VarRemain.csv".format(DB, subject_id)) # filtred k-mer file (used for barcodes creation)
+                    input_f03_kmers = os.path.join(temp_path, "3_{}_{}_VarRemain.csv".format(DB, subject_id)) # kmers files with id column
+                    input_f06_filt_kmers = os.path.join(temp_path, "6_{}_{}_filt_slidingwindow_Var.csv".format(DB, subject_id)) # filtred k-mer file (used for barcodes creation)
                     input_01_seqk = os.path.join(temp_path, "1_{}_{}_seqK.csv".format(DB, subject_id)) # initial k-mer file (with metadata)
                     input_barcodes = os.path.join(dir_path, "covid_vaccine_new_7_barcodes.tsv".format(DB, subject_id)) # path of the barcodes.tsv
-                    
+
+                   
                     # Joining the tables to get the sample id
                     f01_df = pd.read_csv(input_01_seqk).reset_index(names="id")
                     f03_df = pd.read_csv(input_f03_kmers)
+                    f06_df = pd.read_csv(input_f06_filt_kmers, index_col=0)
                     barcodes_df = pd.read_csv(input_barcodes, sep="\t", index_col=None, header=None)
                     barcodes_df.columns = ["kmer"]
+
+                    # Getting the filtred kmers f03
+                    f03_df = f03_df[f03_df.kmer.isin(f06_df.kmer.values)]
 
                     # Using the labels_dict to map the labels (via sample id)
                     merged_df = pd.merge(left=f01_df, right=f03_df, how="right", on="id")[["kmer","id","sample_id"]]
