@@ -566,43 +566,15 @@ class PipelinePreprocessingTest(unittest.TestCase):
         dir_path = self.path_temp #temp file path
         
         for subject_id in self.subjects:
-            input_df = os.path.join(dir_path, "4_{}_{}_slidingwindow_Var.csv".format(DB, subject_id))
+            input_df = os.path.join(dir_path, "4_{}_{}_slidingwindow_Var.csv".format(DB, subject_id)) 
             input_vocab = os.path.join(dir_path, "5_{}_{}_filtered_trimers_VarRemain.csv".format(DB, subject_id))
             output_file = os.path.join(dir_path, "6_{}_{}_svar_SlidingWindow_filter.csv".format(DB, subject_id))
+            output_filt_sliding_window = os.path.join(dir_path, "6_{}_{}_filt_slidingwindow_Var.csv".format(DB, subject_id))
 
-            if os.path.exists(output_file):
+            if sum([os.path.exists(i) for i in [output_filt_sliding_window, output_file]]) == 2:
                 print("> Step No.6 of the preprocessing already done, continuing to step 7.")
 
             else:
-#                # SlidingWindow kmers after variance PATH
-#                df = pd.read_csv(input_df, usecols=["SlidingWindow"])
-#                
-#                vocab = pd.read_csv(input_vocab, index_col=False)
-#                vocab.drop('Unnamed: 0',axis='columns', inplace=True)
-#                
-#                li=set(vocab['trimer'])
-#                
-#                reqiured_kmers=set()
-#                for index, row in tqdm(df.iterrows()):
-#                    kmer_list = row['SlidingWindow']
-#                    kmer_list = re.sub(r"[^A-Za-z0-9(),]", "", kmer_list)
-#                    kmer_list = re.sub(r"[^A-Za-z0-9()]", " ", kmer_list)
-#                    kmer_list = set(kmer_list.split(" "))
-#
-#                    for kmer in kmer_list:
-#                        if kmer in li:
-#                            reqiured_kmers.add(index)            
-#                reqiured_kmers
-# 
-#                new_list=[]
-#                for kmer in reqiured_kmers:
-#                    new_list.append(df.iloc[kmer])
-#                
-#                df_new=pd.DataFrame(data=new_list)
-#                
-#                # Filtered sliding window kmers PATH
-#                df_new.to_csv(output_file, index=False)
-#
                 # 1. Prepare the vocabulary set
                 vocab = pd.read_csv(input_vocab)
                 li = set(vocab['trimer'])
@@ -612,12 +584,16 @@ class PipelinePreprocessingTest(unittest.TestCase):
 
                 # 3. Define a cleaning function
                 def has_required_kmer(row_string):
-                    if not isinstance(row_string, str): return False
+                    if not isinstance(row_string, str): 
+                        return False
+                    
                     # Clean the string similar to your regex
                     clean_str = re.sub(r"[^A-Za-z0-9(),]", "", row_string)
                     clean_str = re.sub(r"[^A-Za-z0-9()]", " ", clean_str)
+
                     # Check if any k-mer in this row exists in our vocabulary set
                     tokens = clean_str.split()
+
                     return any(kmer in li for kmer in tokens)
 
                 # 4. Apply the filter (Vectorized approach)
@@ -626,6 +602,7 @@ class PipelinePreprocessingTest(unittest.TestCase):
                 df_new = df[mask]
 
                 # 5. Save
+                pd.read_csv(input_df)[mask].to_csv(output_filt_sliding_window)
                 df_new.to_csv(output_file, index=False)
 
 
