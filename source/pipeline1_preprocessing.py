@@ -39,7 +39,7 @@ class PipelinePreprocessingTest(unittest.TestCase):
         # Cheecking if database assosiated talbes exsists
         create_folders()
         print(cls.db_name, type(cls.db_name))
-        create_folders(req_folders=[os.path.join(i, cls.db_name) for i in ["temp_data", "tms_input", "reports"]])
+        create_folders(req_folders=[os.path.join(i, cls.db_name) for i in ["temp_data", "reports"]])
 
         # Setting paths
         cls.path_temp = os.path.join("temp_data", cls.db_name)
