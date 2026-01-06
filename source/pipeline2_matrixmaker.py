@@ -36,7 +36,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
 
         # Setting paths
         cls.path_temp = os.path.join("temp_data", cls.db_name)
-        cls.path_final = os.path.join("tms_input", cls.db_name)
+        cls.path_final = "tms_input"
 
 
     ################################
@@ -47,10 +47,13 @@ class PipelineMatrixMakerTest(unittest.TestCase):
         dir_path = self.path_final #final file path
         
         for subject_id in self.subjects:
+            # Import paths
             input_sliding_window = os.path.join(temp_path, "6_{}_{}_svar_SlidingWindow_filter.csv".format(DB, subject_id))
             input_trimers_weights = os.path.join(temp_path, "7_{}_{}_VarRemain_trimer_weights.p".format(DB, subject_id))
             input_vocab = os.path.join(temp_path, "5_{}_{}_filtered_trimers_VarRemain.csv".format(DB, subject_id))
-            output_file = os.path.join(dir_path, "{}_{}_matrix.mtx".format(DB, subject_id))
+
+            # Output path
+            output_file = os.path.join(dir_path, "{}-subject{}".format(DB, subject_id), "matrix.mtx")
 
             if os.path.exists(output_file):
                 print("> Step No.1 of the matrix creation pipeline already done, continuing to step 2.")
@@ -120,7 +123,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
         
         for subject_id in self.subjects:
             input_temp_kmer_path = os.path.join(temp_path, "6_{}_{}_filt_slidingwindow_Var.csv".format(DB, subject_id))
-            output_file = os.path.join(dir_path, "{}_{}_barcodes.tsv".format(DB, subject_id))
+            output_file = os.path.join(dir_path, "{}-subject{}".format(DB, subject_id), "barcodes.tsv")
 
             if os.path.exists(output_file):
                 print("> Step No.2 of the matrix creation pipeline already done, continuing to step 3.")
@@ -145,7 +148,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
         
         for subject_id in self.subjects:
             input_temp_trimer_path = os.path.join(temp_path, "5_{}_{}_filtered_trimers_VarRemain.csv".format(DB, subject_id))
-            output_file = os.path.join(dir_path, "{}_{}_genes.tsv".format(DB, subject_id))
+            output_file = os.path.join(dir_path, "{}-subject{}".format(DB, subject_id), "genes.tsv")
 
             if os.path.exists(output_file):
                 print("> Step No.3 of the matrix creation pipeline already done, process is done.")
@@ -169,7 +172,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
         dir_path = self.path_final #final file path
 
         for subject_id in self.subjects:
-            output_file = os.path.join(dir_path, "{}_{}_labels.csv").format(DB, subject_id) # path for the labels.csv
+            output_file = os.path.join(dir_path, "{}-subject{}".format(DB, subject_id), "labels.csv") # path for the labels.csv
 
             if os.path.exists(output_file):
                 print("> Step No.3 of the matrix creation pipeline already done, process is done.")
@@ -204,7 +207,7 @@ class PipelineMatrixMakerTest(unittest.TestCase):
                     input_f03_kmers = os.path.join(temp_path, "3_{}_{}_VarRemain.csv".format(DB, subject_id)) # kmers files with id column
                     input_f06_filt_kmers = os.path.join(temp_path, "6_{}_{}_filt_slidingwindow_Var.csv".format(DB, subject_id)) # filtred k-mer file (used for barcodes creation)
                     input_01_seqk = os.path.join(temp_path, "1_{}_{}_seqK.csv".format(DB, subject_id)) # initial k-mer file (with metadata)
-                    input_barcodes = os.path.join(dir_path, "covid_vaccine_new_7_barcodes.tsv".format(DB, subject_id)) # path of the barcodes.tsv
+                    input_barcodes = os.path.join(dir_path, "{}-subject{}".format(DB, subject_id), "barcodes.tsv") # path of the barcodes.tsv
 
                    
                     # Joining the tables to get the sample id
