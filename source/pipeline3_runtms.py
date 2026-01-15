@@ -1,5 +1,6 @@
 from .helpers import read_json, create_folders
 import unittest
+import subprocess
 import os
 
 # Pipeline for too many cells run
@@ -22,9 +23,35 @@ class RunTmsTest(unittest.TestCase):
 
     # Creating required folders
     def test_01_folders_creation(self):        
-        path_mainf = os.path.join("tms_output", self.db_name)
-        req_folders = ["tms_output", path_mainf] + [os.path.join(path_mainf,i) for i in self.db_subjects]
+        self.path_mainf = "tms_output"
+        req_folders = [self.path_mainf] + [os.path.join(self.path_mainf, "-".join([self.db_name, f"subject{i}"])) for i in self.db_subjects]
         create_folders(req_folders)
+
+    
+    def test_02_run_tms(self):
+        for i in self.db_subjects:
+            folder_name = "-".join([self.db_name, f"subject{i}"])
+            input_path = os.path.join("tms_input", folder_name)
+            output_path = os.path.join("tms_output", folder_name)
+
+            tms_cmd = [
+            "too-many-cells", "make-tree",
+            "--matrix-path", str(input_path),
+            "--labels-file", str(os.path.join(input_path, "labels.csv")),
+            "--draw-collection", "PieRing",
+            "--output", output_path
+                        ]
+
+            try:
+                subprocess.run(tms_cmd, 
+                               check=True)
+                
+                print(f"Successfully processed {folder_name}")
+                
+            except subprocess.CalledProcessError as pr_error:
+                print(f"Error running TMS for {folder_name}: {pr_error}")
+
+
 
 
 
@@ -121,15 +148,13 @@ def run_tms_pipeline():
         ]
 
         try:
-            subprocess.run(
+            os.system.subprocess.run(
                 tms_cmd, 
                 cwd=str(sub_output_dir), # Run command inside the specific output folder
                 check=True
-            )
+                                    )
+            
             print(f"Successfully processed {folder_name}")
             
-        except subprocess.CalledProcessError as e:
-            print(f"Error running TMS for {folder_name}: {e}")
-
-if __name__ == "__main__":
-    run_tms_pipeline()
+        except os.system.subprocess.CalledProcessError as pr_error:
+            print(f"Error running TMS for {folder_name}: {pr_error}")
