@@ -103,13 +103,21 @@ class PipelineMatrixMakerTest(unittest.TestCase):
                 shape_columns = len(Trimers)
                 print("The shape of the dense matrix is: {} rows x {} columns".format(shape_rows, shape_columns))
                 
+                # The number of rows (features/trimers) is the size of your vocabulary
+                num_features = len(vocab)
+                # The number of columns (cells/samples) is the total count of the sliding windows processed
+                num_samples = kmers_counter
+                print(f"Matrix Shape: {num_features} rows x {num_samples} columns")
+
                 row = np.array(Kmers)
-                col = np.array(list(Trimers))
+                col = np.array(Trimers)
                 data = np.array(Weights)
                 
-                sparse_matrix=csr_matrix((data, (col,row)), shape=(shape_columns,shape_rows))
+                # Define the sparse matrix with the actual dimensions
+                # Rows = Features, Cols = Samples
+                sparse_matrix = csr_matrix((data, (col, row)), shape=(num_features, num_samples))
                 
-                # Sparse matrix save PATH  
+                # Save the matrix
                 scipy.io.mmwrite(output_file, sparse_matrix)
     
     
