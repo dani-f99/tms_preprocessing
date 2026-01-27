@@ -38,7 +38,7 @@ class RunTmsTest(unittest.TestCase):
             "too-many-cells", "make-tree",
             "--matrix-path", str(input_path),
             "--labels-file", str(os.path.join(input_path, "labels.csv")),
-            "--draw-collection", "PieRing",
+            "--draw-collection", "PieRing", ## lack of ram may cause too many cells to freeze / crash
             "--output", output_path
                         ]
 
